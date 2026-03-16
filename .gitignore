@@ -1,0 +1,8 @@
+# macOS
+.DS_Store
+
+# Rust
+target/
+
+# Xcode (generated from project.yml via XcodeGen)
+Chisel.xcodeproj/
