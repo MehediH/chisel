@@ -1,0 +1,89 @@
+name: Chisel
+options:
+  bundleIdPrefix: cotl.chisel
+  deploymentTarget:
+    macOS: "13.0"
+  xcodeVersion: "15.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MACOSX_DEPLOYMENT_TARGET: "13.0"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: F8HXV863FX
+
+targets:
+  Chisel:
+    type: application
+    platform: macOS
+    sources:
+      - path: Chisel
+        excludes:
+          - "*.entitlements"
+      - path: ChiselShared
+    info:
+      path: Chisel/Info.plist
+      properties:
+        LSUIElement: true
+        CFBundleURLTypes:
+          - CFBundleURLSchemes:
+              - chisel
+            CFBundleURLName: cotl.chisel.app
+        NetworkExtension:
+          NEMachServiceName: group.cotl.chisel.app.ChiselFilter
+    entitlements:
+      path: Chisel/Chisel.entitlements
+      properties:
+        com.apple.security.app-sandbox: false
+        com.apple.security.application-groups:
+          - group.cotl.chisel.app
+        com.apple.developer.system-extension.install: true
+        com.apple.developer.networking.networkextension:
+          - content-filter-provider
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: cotl.chisel.app
+        PRODUCT_NAME: Chisel
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/../Frameworks"
+        ENABLE_HARDENED_RUNTIME: true
+    dependencies:
+      - target: ChiselFilter
+        embed: true
+        codeSign: true
+        buildPhase:
+          copyFiles:
+            destination: systemExtension
+
+  ChiselFilter:
+    type: system-extension
+    platform: macOS
+    sources:
+      - path: ChiselFilter
+        excludes:
+          - "*.entitlements"
+      - path: ChiselShared
+    info:
+      path: ChiselFilter/Info.plist
+      properties:
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.networkextension.filter-data
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).FilterDataProvider
+        NetworkExtension:
+          NEFilterProvider:
+            NEFilterDataProvider: FilterDataProvider
+          NEMachServiceName: group.cotl.chisel.app.ChiselFilter
+    entitlements:
+      path: ChiselFilter/ChiselFilter.entitlements
+      properties:
+        com.apple.security.app-sandbox: false
+        com.apple.security.application-groups:
+          - group.cotl.chisel.app
+        com.apple.developer.networking.networkextension:
+          - content-filter-provider
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: cotl.chisel.app.ChiselFilter
+        PRODUCT_NAME: ChiselFilter
+        ENABLE_HARDENED_RUNTIME: true
+        SYSTEM_EXTENSION_API_VERSION: "1"
+        OTHER_LDFLAGS: "-lbsm"
